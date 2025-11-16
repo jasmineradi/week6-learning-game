@@ -6,7 +6,12 @@ import random
 
 
 class Trainer:
-    """Train the Q-learning agent to play Tic-Tac-Toe"""
+    """
+    The Trainer class is responsible for running multiple self-play games 
+    between the Q-learning agent (as player X) and a random opponent (as player O). 
+    It automates gameplay, collects rewards, updates Q-values, and measures 
+    overall learning progress across many training episodes.
+    """
 
     def __init__(self):
         self.game = TicTacToe()

@@ -36,27 +36,36 @@ class QLearningAgent:
 
     def choose_action(self, state, available_actions):
         """
-        Choose action using epsilon-greedy strategy
-        Sometimes explore (random), sometimes exploit (best known)
+        Choose an action using the epsilon-greedy strategy.
+
+        When training, the agent sometimes explores (tries a random move)
+        and sometimes exploits (uses the best move it has learned so far).
         """
         if not available_actions:
+            # No legal moves left (board is full)
             return None
 
-        # Exploration: random action
+        # --- Exploration step: try a random move some of the time ---
+        # If we are in training mode AND a random number is less than
+        # the exploration_rate, we ignore the Q-table and just pick
+        # a random available action. This helps the agent discover
+        # new state-action pairs.
         if self.training and random.random() < self.exploration_rate:
             return random.choice(available_actions)
 
-        # Exploitation: best known action
+        # --- Exploitation step: choose the best-known move from the Q-table ---
         best_action = None
         best_value = float('-inf')
-
+        # Look at each possible action and check its Q-value
         for action in available_actions:
             q_value = self.get_q_value(state, action)
+            # Keep track of the action with the highest Q-value
             if q_value > best_value:
                 best_value = q_value
                 best_action = action
 
-        # If all Q-values are the same, choose randomly
+        # If for some reason all Q-values are equal or uninitialized,
+        # fall back to a random action so the agent still makes a move.
         if best_action is None:
             best_action = random.choice(available_actions)
 
@@ -64,26 +73,37 @@ class QLearningAgent:
 
     def update_q_value(self, state, action, reward, next_state, next_actions):
         """
-        Update Q-value using the Q-learning formula
-        This is where the learning happens!
+        Update the Q-value for a given state-action pair.
+
+        This is the core of Q-learning:
+        new_Q = old_Q + learning_rate * (reward + discount * max_next_Q - old_Q)
         """
+
+        # Build a unique key for this (state, action) pair so it can be
+        # stored and retrieved from the Q-table dictionary.
         key = f"{state}_{action}"
 
-        # Get current Q-value
+        # Current Q-value for this state-action (defaults to 0.0 if not seen before)
         current_q = self.get_q_value(state, action)
 
-        # Get maximum Q-value for next state
+        # Look ahead to the next state: what is the best possible future value?
         if next_actions:
+            # If there are legal next actions, get the maximum Q-value among them.
             max_next_q = max([self.get_q_value(next_state, a)
                               for a in next_actions])
         else:
+            # If there are no next actions (game over), there is no future reward.
             max_next_q = 0
 
-        # Q-learning formula
+        # Apply the Q-learning update rule:
+        #   - reward: immediate score from this action (win/lose/tie)
+        #   - discount_factor * max_next_q: best future value, discounted
+        #   - learning_rate controls how fast we adjust the old value
         new_q = current_q + self.learning_rate * (
             reward + self.discount_factor * max_next_q - current_q
         )
-
+        
+        # Store the updated Q-value back into the Q-table
         self.q_table[key] = new_q
 
     def set_training(self, training):

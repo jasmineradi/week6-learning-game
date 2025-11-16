@@ -1,5 +1,12 @@
 # play_game.py
 
+"""
+ Plays a single training game between the agent and a random opponent.
+The agent selects moves using the Q-table (plus exploration), while the 
+opponent always chooses random moves. Game history is stored so that 
+Q-values can be updated after the outcome (win, loss, or tie) is known.
+"""
+
 from tic_tac_toe import TicTacToe
 from q_learning_agent import QLearningAgent
 
